@@ -1,0 +1,266 @@
+// Jenkins Pipeline for AI-Powered DevSecOps
+// ==========================================
+//
+// This example shows how to integrate the DevSecOps pipeline
+// into Jenkins using a declarative pipeline.
+
+pipeline {
+    agent any
+
+    // Environment variables
+    environment {
+        PYTHON_VERSION = '3.11'
+        SCAN_OUTPUT = 'security-scan-results'
+        REPORT_NAME = 'Security Assessment Report'
+    }
+
+    // Build parameters
+    parameters {
+        choice(
+            name: 'SCAN_LEVEL',
+            choices: ['standard', 'thorough', 'quick'],
+            description: 'Scanning depth level'
+        )
+        booleanParam(
+            name: 'ENABLE_ML',
+            defaultValue: true,
+            description: 'Enable ML-powered correlation'
+        )
+        string(
+            name: 'POLICY_FILE',
+            defaultValue: 'policies/deployment-gate-policy.yaml',
+            description: 'Policy file for deployment gating'
+        )
+    }
+
+    // Pipeline stages
+    stages {
+        stage('Setup') {
+            steps {
+                echo '📦 Setting up environment...'
+
+                // Clean workspace
+                deleteDir()
+
+                // Checkout code
+                checkout scm
+
+                // Setup Python environment
+                sh '''
+                    python${PYTHON_VERSION} -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                    pip install bandit semgrep safety
+                '''
+            }
+        }
+
+        stage('SAST Scanning') {
+            parallel {
+                stage('Bandit (Python)') {
+                    steps {
+                        script {
+                            echo '🍌 Running Bandit...'
+                            sh '''
+                                . venv/bin/activate
+                                mkdir -p ${SCAN_OUTPUT}
+                                bandit -r . -f json -o ${SCAN_OUTPUT}/bandit-report.json || true
+                            '''
+                        }
+                    }
+                }
+
+                stage('Semgrep (Multi-language)') {
+                    steps {
+                        script {
+                            echo '🎯 Running Semgrep...'
+                            sh '''
+                                . venv/bin/activate
+                                mkdir -p ${SCAN_OUTPUT}
+                                semgrep --config p/security-audit \
+                                        --config p/owasp-top-ten \
+                                        --json --output ${SCAN_OUTPUT}/semgrep-report.json \
+                                        . || true
+                            '''
+                        }
+                    }
+                }
+
+                stage('Safety (Dependencies)') {
+                    steps {
+                        script {
+                            echo '🔐 Running Safety...'
+                            sh '''
+                                . venv/bin/activate
+                                mkdir -p ${SCAN_OUTPUT}
+                                safety check --json > ${SCAN_OUTPUT}/safety-report.json || true
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('ML Correlation') {
+            when {
+                expression { params.ENABLE_ML == true }
+            }
+            steps {
+                echo '🤖 Running ML correlation...'
+                sh '''
+                    . venv/bin/activate
+                    python scripts/run_correlation.py \
+                        --sast-dir ${SCAN_OUTPUT} \
+                        --output ${SCAN_OUTPUT}/consolidated-findings.json
+                '''
+            }
+        }
+
+        stage('Generate Report') {
+            steps {
+                echo '📊 Generating security report...'
+                sh '''
+                    . venv/bin/activate
+                    python scripts/generate_security_report.py \
+                        --findings ${SCAN_OUTPUT}/consolidated-findings.json \
+                        --format html \
+                        --output ${SCAN_OUTPUT}/security-report.html
+                '''
+            }
+        }
+
+        stage('Policy Enforcement') {
+            steps {
+                script {
+                    echo '🚪 Enforcing deployment policies...'
+
+                    // Run policy check and capture result
+                    def policyResult = sh(
+                        script: '''
+                            . venv/bin/activate
+                            python scripts/policy_enforcement.py \
+                                --findings ${SCAN_OUTPUT}/consolidated-findings.json \
+                                --policy ${POLICY_FILE} \
+                                --fail-on critical
+                        ''',
+                        returnStatus: true
+                    )
+
+                    // Set build status based on policy result
+                    if (policyResult != 0) {
+                        currentBuild.result = 'UNSTABLE'
+                        error('Security policy violations detected!')
+                    }
+                }
+            }
+        }
+
+        stage('Publish Results') {
+            steps {
+                echo '📤 Publishing results...'
+
+                // Publish HTML report
+                publishHTML([
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: env.SCAN_OUTPUT,
+                    reportFiles: 'security-report.html',
+                    reportName: env.REPORT_NAME,
+                    reportTitles: 'DevSecOps Security Scan'
+                ])
+
+                // Archive artifacts
+                archiveArtifacts artifacts: "${SCAN_OUTPUT}/**/*", fingerprint: true
+
+                // Record test results (if available)
+                // junit "${SCAN_OUTPUT}/*-report.xml"
+            }
+        }
+    }
+
+    // Post-build actions
+    post {
+        always {
+            echo '🧹 Cleaning up...'
+
+            // Clean up virtual environment
+            sh 'rm -rf venv'
+
+            // Send notifications (configure as needed)
+            script {
+                def findings = readJSON file: "${SCAN_OUTPUT}/consolidated-findings.json"
+                def critical = findings.CRITICAL?.size() ?: 0
+                def high = findings.HIGH?.size() ?: 0
+
+                def message = """
+                    Security Scan Complete for ${env.JOB_NAME}
+                    Build: ${env.BUILD_NUMBER}
+                    Critical: ${critical}
+                    High: ${high}
+                    Status: ${currentBuild.currentResult}
+                    Report: ${env.BUILD_URL}Security_20Assessment_20Report/
+                """.stripIndent()
+
+                echo message
+
+                // Uncomment to send Slack notification
+                // slackSend(
+                //     color: critical > 0 ? 'danger' : 'good',
+                //     message: message
+                // )
+            }
+        }
+
+        success {
+            echo '✅ Pipeline succeeded!'
+        }
+
+        failure {
+            echo '❌ Pipeline failed!'
+        }
+
+        unstable {
+            echo '⚠️  Pipeline unstable - security issues found'
+        }
+    }
+
+    // Build options
+    options {
+        // Keep last 30 builds
+        buildDiscarder(logRotator(numToKeepStr: '30'))
+
+        // Timeout after 1 hour
+        timeout(time: 1, unit: 'HOURS')
+
+        // Disable concurrent builds
+        disableConcurrentBuilds()
+
+        // Timestamps in console output
+        timestamps()
+    }
+
+    // Triggers
+    triggers {
+        // Poll SCM every 15 minutes
+        pollSCM('H/15 * * * *')
+
+        // Nightly build at 2 AM
+        cron('0 2 * * *')
+    }
+}
+
+// Helper function for quality gates
+def checkQualityGate(findings) {
+    def critical = findings.CRITICAL?.size() ?: 0
+    def high = findings.HIGH?.size() ?: 0
+
+    if (critical > 0) {
+        return 'FAILED'
+    } else if (high > 5) {
+        return 'UNSTABLE'
+    } else {
+        return 'SUCCESS'
+    }
+}

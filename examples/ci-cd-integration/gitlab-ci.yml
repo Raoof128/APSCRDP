@@ -1,0 +1,130 @@
+# GitLab CI/CD Integration Example
+# ===================================
+#
+# This example shows how to integrate the DevSecOps pipeline
+# into GitLab CI/CD.
+
+# Define stages
+stages:
+  - security-scan
+  - report
+  - deploy
+
+# Global variables
+variables:
+  PYTHON_VERSION: "3.11"
+  SCAN_OUTPUT: "security-scan-results"
+
+# Security scanning job
+security-sast:
+  stage: security-scan
+  image: python:${PYTHON_VERSION}
+
+  before_script:
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - pip install bandit semgrep safety
+
+  script:
+    # Run the security pipeline
+    - python scripts/orchestrate_devsecops.py
+        --target .
+        --output ${SCAN_OUTPUT}
+
+  artifacts:
+    # Save scan results
+    reports:
+      sast: ${SCAN_OUTPUT}/consolidated-findings.json
+    paths:
+      - ${SCAN_OUTPUT}/
+    expire_in: 30 days
+
+  # Allow failure if only low/medium findings
+  allow_failure:
+    exit_codes: 1
+
+# ML-powered correlation (optional, requires GPU runner)
+ml-correlation:
+  stage: security-scan
+  image: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
+
+  tags:
+    - gpu  # Use GPU runner if available
+
+  script:
+    - pip install -r ml_models/requirements.txt
+    - python scripts/run_correlation.py
+        --sast-dir ${SCAN_OUTPUT}
+        --output ${SCAN_OUTPUT}/ml-correlated.json
+
+  artifacts:
+    paths:
+      - ${SCAN_OUTPUT}/ml-correlated.json
+    expire_in: 30 days
+
+  only:
+    - main
+    - merge_requests
+
+# Generate security report
+generate-report:
+  stage: report
+  image: python:${PYTHON_VERSION}
+
+  dependencies:
+    - security-sast
+
+  script:
+    - pip install jinja2 markdown
+    - python scripts/generate_security_report.py
+        --findings ${SCAN_OUTPUT}/consolidated-findings.json
+        --format html
+        --output ${SCAN_OUTPUT}/security-report.html
+
+  artifacts:
+    paths:
+      - ${SCAN_OUTPUT}/security-report.html
+    expire_in: 90 days
+
+# Policy enforcement for deployment gate
+deployment-gate:
+  stage: deploy
+  image: python:${PYTHON_VERSION}
+
+  dependencies:
+    - security-sast
+
+  script:
+    - pip install pyyaml
+    - python scripts/policy_enforcement.py
+        --findings ${SCAN_OUTPUT}/consolidated-findings.json
+        --policy policies/deployment-gate-policy.yaml
+        --fail-on critical
+
+  only:
+    - main
+    - production
+
+  when: manual  # Require manual approval
+
+# Optional: Publish metrics to Prometheus
+publish-metrics:
+  stage: report
+  image: alpine:latest
+
+  script:
+    - apk add --no-cache curl jq
+    - |
+      # Extract metrics from findings
+      CRITICAL=$(cat ${SCAN_OUTPUT}/consolidated-findings.json | jq '.CRITICAL | length')
+      HIGH=$(cat ${SCAN_OUTPUT}/consolidated-findings.json | jq '.HIGH | length')
+
+      # Push to Prometheus Pushgateway
+      cat <<EOF | curl --data-binary @- http://pushgateway:9091/metrics/job/devsecops/instance/${CI_PROJECT_NAME}
+      security_scan_critical_count ${CRITICAL}
+      security_scan_high_count ${HIGH}
+      security_scan_timestamp $(date +%s)
+      EOF
+
+  only:
+    - main

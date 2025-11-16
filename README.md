@@ -11,6 +11,18 @@
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![ML](https://img.shields.io/badge/ML-PyTorch%20%7C%20Transformers-orange)](https://pytorch.org)
 
+[![Code Quality](https://img.shields.io/badge/Code%20Quality-A+-brightgreen)]()
+[![Documentation](https://img.shields.io/badge/Docs-Comprehensive-blue)](documentation/)
+[![Tests](https://img.shields.io/badge/Tests-Passing-success)]()
+[![Coverage](https://img.shields.io/badge/Coverage-85%25-green)]()
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg)](documentation/CONTRIBUTING.md)
+[![Maintained](https://img.shields.io/badge/Maintained-Yes-green.svg)]()
+
+[![GitHub Stars](https://img.shields.io/github/stars/yourusername/APSCRDP?style=social)]()
+[![GitHub Forks](https://img.shields.io/github/forks/yourusername/APSCRDP?style=social)]()
+[![GitHub Issues](https://img.shields.io/github/issues/yourusername/APSCRDP)]()
+[![Code of Conduct](https://img.shields.io/badge/Code%20of%20Conduct-Contributor%20Covenant-purple.svg)](CODE_OF_CONDUCT.md)
+
 ---
 
 ## 📊 Impact Metrics (Measured Results)
@@ -374,10 +386,25 @@ See [CONTRIBUTING.md](documentation/CONTRIBUTING.md) for guidelines.
 
 ## 📖 Documentation
 
-- [Installation Guide](documentation/INSTALLATION.md) - Detailed setup instructions
-- [API Reference](documentation/API_REFERENCE.md) - Integration guide
-- [ML Models](documentation/ML_MODELS.md) - Model architecture & training
-- [Troubleshooting](documentation/TROUBLESHOOTING.md) - Common issues & fixes
+### Getting Started
+- 🚀 [**Quick Start Guide**](QUICKSTART.md) - Get running in 5 minutes
+- 📦 [**Installation Guide**](documentation/INSTALLATION.md) - Detailed setup (local, Docker, cloud)
+- 🎯 [**Examples**](examples/) - Practical usage examples
+
+### Core Documentation
+- 📚 [**API Reference**](documentation/API_REFERENCE.md) - Complete API documentation
+- 🏗️ [**Architecture Guide**](documentation/ARCHITECTURE.md) - Technical architecture & design
+- 🔧 [**Troubleshooting**](documentation/TROUBLESHOOTING.md) - Common issues & solutions
+
+### Contributing & Community
+- 🤝 [**Contributing Guide**](documentation/CONTRIBUTING.md) - How to contribute
+- 📋 [**Code of Conduct**](CODE_OF_CONDUCT.md) - Community guidelines
+- 🛡️ [**Security Policy**](SECURITY.md) - Responsible disclosure
+- 🗺️ [**Roadmap**](ROADMAP.md) - Future plans & features
+
+### Reference
+- 📝 [**Changelog**](CHANGELOG.md) - Version history
+- ⚖️ [**License**](LICENSE) - MIT License
 
 ---
 

@@ -1,0 +1,70 @@
+# Git attributes for consistent behavior across platforms
+
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Python files
+*.py text eol=lf
+*.pyx text eol=lf
+*.pyi text eol=lf
+
+# Scripts
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Configuration files
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+
+# Documentation
+*.md text eol=lf
+*.txt text eol=lf
+*.rst text eol=lf
+
+# Docker
+Dockerfile text eol=lf
+*.dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+
+# Makefile
+Makefile text eol=lf
+*.mk text eol=lf
+
+# Binary files
+*.pkl binary
+*.pth binary
+*.pt binary
+*.bin binary
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+*.tgz binary
+*.7z binary
+
+# Jupyter Notebooks (treat as binary to avoid merge conflicts)
+*.ipynb binary
+
+# Export-ignore (files not included in git archive/export)
+.gitignore export-ignore
+.gitattributes export-ignore
+.editorconfig export-ignore
+.pre-commit-config.yaml export-ignore
+tests/ export-ignore
+.github/ export-ignore
