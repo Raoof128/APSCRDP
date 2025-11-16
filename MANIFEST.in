@@ -1,0 +1,37 @@
+# Include documentation
+include README.md
+include LICENSE
+include CHANGELOG.md
+recursive-include documentation *.md
+
+# Include configuration files
+include pytest.ini
+include pyproject.toml
+include setup.py
+recursive-include policies *.yaml *.yml
+
+# Include monitoring configs
+recursive-include monitoring *.yml *.json
+
+# Include requirements
+include requirements.txt
+include requirements-dev.txt
+
+# Exclude unnecessary files
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store
+global-exclude *.swp
+global-exclude *.swo
+
+# Exclude test and sample data
+prune tests
+prune sample-apps
+prune scan-results
+prune demo-reports
+
+# Exclude Docker and CI files
+exclude Dockerfile
+exclude docker-compose.yml
+exclude .dockerignore
+exclude .github

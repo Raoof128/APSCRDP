@@ -1,0 +1,142 @@
+# Example Configuration for AI-Powered DevSecOps Pipeline
+# Copy this file to config.yaml and customize for your environment
+
+# Output directory for scan results
+output_dir: scan-results
+
+# Scanner Configuration
+scanners:
+  # Bandit (Python SAST)
+  bandit:
+    enabled: true
+    timeout: 300
+    severity_level: low  # low, medium, high
+    confidence_level: low  # low, medium, high
+
+  # Semgrep (Multi-language SAST)
+  semgrep:
+    enabled: true
+    timeout: 600
+    configs:
+      - p/security-audit
+      - p/owasp-top-ten
+      - p/cwe-top-25
+    # Custom rules path (optional)
+    # custom_rules: security-scanning/custom_rules/
+
+  # Safety (Python dependency scanner)
+  safety:
+    enabled: true
+    timeout: 300
+    full_report: true
+
+  # Trivy (Container scanner)
+  trivy:
+    enabled: false  # Set to true if Docker is available
+    timeout: 600
+    severity: CRITICAL,HIGH,MEDIUM
+    ignore_unfixed: false
+
+# ML Correlation Engine Settings
+ml_correlation:
+  enabled: true
+  # Minimum confidence threshold for reporting vulnerabilities
+  confidence_threshold: 0.75
+  # Threshold for filtering false positives
+  fp_threshold: 0.80
+  # Minimum priority score to include in results
+  min_priority_score: 0.0
+  # Contamination rate for anomaly detection
+  contamination: 0.05
+
+# ML Model Configuration
+ml_models:
+  # Semantic code analyzer
+  semantic_analyzer:
+    model_name: microsoft/codebert-base
+    device: auto  # auto, cpu, cuda
+    batch_size: 8
+    max_length: 512
+
+  # Alert correlation
+  correlation:
+    # Path to trained model (optional)
+    # trained_model_path: models/correlation_classifier.pkl
+    retrain_on_feedback: true
+
+# Deployment Policy
+deployment_policy:
+  # Maximum allowed vulnerabilities by severity
+  max_critical_vulnerabilities: 0
+  max_high_vulnerabilities: 5
+  max_medium_vulnerabilities: 20
+  max_low_vulnerabilities: 100
+
+  # Block deployment on policy violation
+  block_on_policy_violation: true
+
+  # CWE exceptions (allow specific CWEs despite severity)
+  allowed_cwe_exceptions: []
+    # - CWE-117  # Example: Log injection in dev environment
+
+# Reporting Configuration
+reporting:
+  # Output formats
+  formats:
+    - json
+    - html
+
+  # Include detailed code snippets in reports
+  include_snippets: true
+
+  # Maximum number of vulnerabilities per severity in report
+  max_per_severity: 50
+
+# Notification Settings
+notifications:
+  # Email notifications (requires SMTP configuration)
+  email:
+    enabled: false
+    smtp_host: smtp.example.com
+    smtp_port: 587
+    smtp_user: alerts@example.com
+    # smtp_password: ${SMTP_PASSWORD}  # Use environment variable
+    recipients:
+      - security-team@example.com
+
+  # Slack notifications
+  slack:
+    enabled: false
+    # webhook_url: ${SLACK_WEBHOOK_URL}  # Use environment variable
+    channel: "#security-alerts"
+
+  # GitHub comments on PRs
+  github:
+    enabled: true
+    comment_on_pr: true
+
+# Logging Configuration
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: devsecops-pipeline.log
+
+# Cache Settings
+cache:
+  enabled: true
+  directory: .cache
+  ttl: 86400  # Time to live in seconds (24 hours)
+
+# Advanced Settings
+advanced:
+  # Run scanners in parallel
+  parallel_execution: true
+
+  # Maximum number of parallel workers
+  max_workers: 4
+
+  # Incremental scanning (only scan changed files)
+  incremental: false
+
+  # Timeout for entire pipeline (seconds)
+  pipeline_timeout: 1800  # 30 minutes

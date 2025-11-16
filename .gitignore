@@ -1,0 +1,97 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+*.cover
+.cache
+nosetests.xml
+coverage.xml
+
+# ML Models (cached/downloaded)
+*.pt
+*.pth
+*.ckpt
+*.bin
+models/
+.cache/
+transformers_cache/
+
+# Security Scan Results
+scan-results/
+results/
+*.sarif
+*-report.json
+*-report.html
+security-assessment-report.*
+consolidated-findings.json
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Docker
+*.tar
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+
+# OS
+Thumbs.db
+
+# CI/CD
+.github/workflows/*.log
+
+# Custom
+demo-reports/*
+!demo-reports/.gitkeep

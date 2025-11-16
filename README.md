@@ -4,6 +4,8 @@
 
 > **Portfolio Status**: ✅ Production-Ready | **Complexity**: Advanced | **Development Time**: 6-8 weeks
 
+> 🚀 **[Get Started in 5 Minutes →](QUICKSTART.md)** | 📚 **[Full Documentation →](documentation/INSTALLATION.md)**
+
 [![Security Scanning](https://img.shields.io/badge/Security-OWASP%20Top%2010-success)](https://owasp.org/www-project-top-ten/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
