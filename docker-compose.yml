@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # Main DevSecOps pipeline service
+  devsecops-pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-devsecops-pipeline
+    volumes:
+      - ./:/app
+      - scan-results:/app/scan-results
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    networks:
+      - devsecops-net
+    command: ["python", "scripts/orchestrate_devsecops.py", "--target", "sample-apps/vulnerable-flask-app"]
+
+  # SonarQube (optional - for advanced SAST)
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLED=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - devsecops-net
+    profiles:
+      - full  # Only start with --profile full
+
+  # PostgreSQL for storing scan results (optional)
+  postgres:
+    image: postgres:15-alpine
+    container_name: devsecops-db
+    environment:
+      - POSTGRES_DB=devsecops
+      - POSTGRES_USER=devsecops
+      - POSTGRES_PASSWORD=changeme
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - devsecops-net
+    profiles:
+      - full
+
+  # Grafana for monitoring (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: devsecops-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/dashboard.json
+    networks:
+      - devsecops-net
+    profiles:
+      - monitoring
+
+volumes:
+  scan-results:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  postgres_data:
+  grafana_data:
+
+networks:
+  devsecops-net:
+    driver: bridge

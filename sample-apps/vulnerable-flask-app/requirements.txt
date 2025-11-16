@@ -1,0 +1,11 @@
+# Vulnerable Flask Application Dependencies
+# These versions are intentionally outdated for testing purposes
+
+Flask==2.0.1
+Werkzeug==2.0.1
+Jinja2==3.0.1
+
+# Intentionally vulnerable dependencies for testing
+PyYAML==5.1  # CVE-2020-1747
+requests==2.20.0  # Multiple CVEs
+urllib3==1.24.1  # CVE-2019-11324

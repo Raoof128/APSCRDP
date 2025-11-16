@@ -1,0 +1,72 @@
+{
+  "dashboard": {
+    "title": "DevSecOps Pipeline Security Dashboard",
+    "tags": ["security", "devsecops", "ml"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Vulnerabilities Detected (Last 24h)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(vulnerabilities_detected) by (severity)",
+            "legendFormat": "{{severity}}"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8}
+      },
+      {
+        "id": 2,
+        "title": "False Positive Rate",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "false_positive_rate",
+            "legendFormat": "FP Rate"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 8}
+      },
+      {
+        "id": 3,
+        "title": "ML Model Confidence Distribution",
+        "type": "histogram",
+        "targets": [
+          {
+            "expr": "ml_confidence_scores",
+            "legendFormat": "Confidence"
+          }
+        ],
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 8}
+      },
+      {
+        "id": 4,
+        "title": "Scan Duration by Stage",
+        "type": "bar",
+        "targets": [
+          {
+            "expr": "avg(scan_duration_seconds) by (stage)",
+            "legendFormat": "{{stage}}"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8}
+      },
+      {
+        "id": 5,
+        "title": "Deployment Gate Decisions",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(deployment_decisions) by (decision)",
+            "legendFormat": "{{decision}}"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8}
+      }
+    ]
+  }
+}

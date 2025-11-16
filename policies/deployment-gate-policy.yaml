@@ -1,0 +1,69 @@
+# Deployment Gate Policy Configuration
+# Defines security thresholds for deployment approval
+
+# Maximum allowed vulnerabilities by severity
+max_critical_vulnerabilities: 0
+max_high_vulnerabilities: 5
+max_medium_vulnerabilities: 20
+max_low_vulnerabilities: 100
+
+# Policy enforcement
+block_on_policy_violation: true
+
+# CWE exceptions (vulnerabilities to allow despite severity)
+allowed_cwe_exceptions:
+  # Example: Allow specific CWEs in development
+  # - CWE-117  # Log injection in dev environment
+
+# Compliance requirements
+compliance:
+  owasp_top_10: mandatory
+  cwe_top_25: mandatory
+  pci_dss: optional
+  sox: optional
+
+# Alert correlation settings
+ml_correlation:
+  enabled: true
+  confidence_threshold: 0.75
+  false_positive_threshold: 0.80
+  min_priority_score: 0.0
+
+# Notification settings
+notifications:
+  critical_alerts:
+    - email
+    - slack
+  high_alerts:
+    - slack
+  deployment_rejected:
+    - email
+    - slack
+    - github_comment
+
+# Exemptions (temporary overrides with expiration)
+exemptions:
+  # Example format:
+  # - cwe: CWE-79
+  #   reason: "Known false positive in test code"
+  #   expires: "2025-12-31"
+  #   approved_by: "security-team@example.com"
+
+# Custom rules
+custom_rules:
+  # Fail on any hardcoded credentials
+  fail_on_hardcoded_secrets: true
+
+  # Fail on outdated dependencies
+  fail_on_vulnerable_dependencies: true
+
+  # Fail on container vulnerabilities
+  fail_on_container_vulnerabilities:
+    critical: true
+    high: true
+    medium: false
+
+# Metadata
+policy_version: "1.0.0"
+last_updated: "2025-11-16"
+owner: "security-team@example.com"

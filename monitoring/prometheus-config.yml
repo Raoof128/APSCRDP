@@ -1,0 +1,50 @@
+# Prometheus Configuration for DevSecOps Pipeline Monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'devsecops-pipeline'
+    env: 'production'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Rule files
+rule_files:
+  - 'alerting-rules.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Pipeline metrics
+  - job_name: 'devsecops-pipeline'
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: '/metrics'
+
+  # Scanner metrics
+  - job_name: 'security-scanners'
+    static_configs:
+      - targets:
+          - 'bandit-exporter:9100'
+          - 'semgrep-exporter:9101'
+          - 'trivy-exporter:9102'
+
+  # ML model performance
+  - job_name: 'ml-models'
+    static_configs:
+      - targets: ['ml-metrics:9200']
+    metrics_path: '/ml/metrics'
+
+  # System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+# Remote write (optional - for long-term storage)
+# remote_write:
+#   - url: "http://victoriametrics:8428/api/v1/write"
